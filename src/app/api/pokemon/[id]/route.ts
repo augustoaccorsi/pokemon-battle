@@ -34,8 +34,30 @@ export async function GET(
         },
         orderBy: { levelLearnedAt: 'asc' },
       },
-      evolutions: true,
     },
+  })
+
+  // Fetch full evolution chain (two-pass to handle multi-stage lines)
+  const directSteps = await prisma.evolutionStep.findMany({
+    where: { OR: [{ fromPokemonId: pokemonId }, { toPokemonId: pokemonId }] },
+  })
+  const chainIds = new Set<number>([pokemonId])
+  for (const s of directSteps) { chainIds.add(s.fromPokemonId); chainIds.add(s.toPokemonId) }
+
+  const chainIdArr = Array.from(chainIds)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allChainSteps: any[] = await prisma.evolutionStep.findMany({
+    where: {
+      OR: [
+        { fromPokemonId: { in: chainIdArr } },
+        { toPokemonId: { in: chainIdArr } },
+      ],
+    },
+    include: {
+      fromPokemon: { select: { id: true, name: true, spritesFront: true } },
+      toPokemon:   { select: { id: true, name: true, spritesFront: true } },
+    },
+    orderBy: { fromPokemonId: 'asc' },
   })
 
   if (!pokemon) {
@@ -74,12 +96,16 @@ export async function GET(
       level: (m.levelLearnedAt ?? undefined) as number | undefined,
     })),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    evolutions: (pokemon.evolutions as any[]).map((e: any) => ({
-      fromId: e.fromPokemonId as number,
-      toId: e.toPokemonId as number,
-      trigger: e.trigger as string,
-      minLevel: (e.minLevel ?? undefined) as number | undefined,
-      itemName: (e.itemName ?? undefined) as string | undefined,
+    evolutions: allChainSteps.map((e: any) => ({
+      fromId:     e.fromPokemonId as number,
+      fromName:   e.fromPokemon.name as string,
+      fromSprite: (e.fromPokemon.spritesFront ?? undefined) as string | undefined,
+      toId:       e.toPokemonId as number,
+      toName:     e.toPokemon.name as string,
+      toSprite:   (e.toPokemon.spritesFront ?? undefined) as string | undefined,
+      trigger:    e.trigger as string,
+      minLevel:   (e.minLevel ?? undefined) as number | undefined,
+      itemName:   (e.itemName ?? undefined) as string | undefined,
     })),
   }
 

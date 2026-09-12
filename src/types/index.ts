@@ -39,7 +39,11 @@ export interface PokemonDetail extends PokemonListItem {
   moves: { name: string; type: PokemonType; learnMethod: string; level?: number }[]
   evolutions: {
     fromId: number
+    fromName: string
+    fromSprite?: string
     toId: number
+    toName: string
+    toSprite?: string
     trigger: string
     minLevel?: number
     itemName?: string

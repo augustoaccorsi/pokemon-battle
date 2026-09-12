@@ -240,61 +240,79 @@ export function DetailTabs({ pokemon }: DetailTabsProps) {
         <div className="panel" style={{ padding: 16 }}>
           {pokemon.evolutions.length === 0 ? (
             <p style={{ fontFamily: 'inherit', fontSize: '0.5rem', color: 'var(--text-secondary)' }}>
-              This Pokémon does not evolve further.
+              This Pokémon does not evolve.
             </p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {pokemon.evolutions.map((e, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display:    'flex',
-                    alignItems: 'center',
-                    gap:        16,
-                    flexWrap:   'wrap',
-                  }}
-                >
-                  {/* From */}
-                  <div style={{ textAlign: 'center' }}>
-                    <PokemonSprite
-                      src={pokemon.id === e.fromId ? pokemon.spriteFront : undefined}
-                      name={`#${String(e.fromId).padStart(3, '0')}`}
-                      size="md"
-                    />
-                    <div style={{ fontFamily: 'inherit', fontSize: '0.45rem', marginTop: 4 }}>
-                      #{String(e.fromId).padStart(3, '0')}
-                    </div>
-                  </div>
-
-                  {/* Arrow + trigger */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontFamily: 'inherit', fontSize: '0.8rem', color: 'var(--pokemon-yellow)' }}>
-                      →
-                    </span>
-                    <span style={{ fontFamily: 'inherit', fontSize: '0.4rem', color: 'var(--text-secondary)', textTransform: 'uppercase', textAlign: 'center' }}>
-                      {e.trigger}
-                      {e.minLevel ? ` Lv. ${e.minLevel}` : ''}
-                      {e.itemName ? ` (${e.itemName})` : ''}
-                    </span>
-                  </div>
-
-                  {/* To */}
-                  <div style={{ textAlign: 'center' }}>
-                    <PokemonSprite
-                      src={pokemon.id === e.toId ? pokemon.spriteFront : undefined}
-                      name={`#${String(e.toId).padStart(3, '0')}`}
-                      size="md"
-                    />
-                    <div style={{ fontFamily: 'inherit', fontSize: '0.45rem', marginTop: 4 }}>
-                      #{String(e.toId).padStart(3, '0')}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <EvolutionChain steps={pokemon.evolutions} />
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Evolution chain ──────────────────────────────────────────────────────────
+
+const SPRITE_CDN = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+
+function spriteUrl(id: number, dbSprite?: string): string {
+  return dbSprite ?? `${SPRITE_CDN}/${id}.png`
+}
+
+interface EvolutionChainProps {
+  steps: PokemonDetail['evolutions']
+}
+
+function EvolutionChain({ steps }: EvolutionChainProps) {
+  // Build ordered unique node list: [stage0, stage1, stage2, ...]
+  // Sort steps by fromId so stage order is ascending
+  const sorted = [...steps].sort((a, b) => a.fromId - b.fromId)
+
+  // Each step is a transition; build a linear list of nodes + arrows
+  // Deduplicate the Pokémon that appears as both "to" of step N and "from" of step N+1
+  const nodes: { id: number; name: string; sprite?: string }[] = []
+  const arrows: { trigger: string; minLevel?: number; itemName?: string }[] = []
+
+  for (const step of sorted) {
+    if (nodes.length === 0 || nodes[nodes.length - 1].id !== step.fromId) {
+      nodes.push({ id: step.fromId, name: step.fromName, sprite: step.fromSprite })
+    }
+    arrows.push({ trigger: step.trigger, minLevel: step.minLevel, itemName: step.itemName })
+    nodes.push({ id: step.toId, name: step.toName, sprite: step.toSprite })
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+      {nodes.map((node, i) => (
+        <>
+          <div key={`node-${node.id}`} style={{ textAlign: 'center', minWidth: 64 }}>
+            <img
+              src={spriteUrl(node.id, node.sprite)}
+              alt={node.name}
+              width={64}
+              height={64}
+              style={{ imageRendering: 'pixelated' }}
+            />
+            <div style={{ fontFamily: 'inherit', fontSize: '0.5rem', color: 'var(--text-primary)', textTransform: 'capitalize', marginTop: 2 }}>
+              {node.name}
+            </div>
+            <div style={{ fontFamily: 'inherit', fontSize: '0.4rem', color: 'var(--text-secondary)' }}>
+              #{String(node.id).padStart(3, '0')}
+            </div>
+          </div>
+
+          {i < arrows.length && (
+            <div key={`arrow-${i}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 56 }}>
+              <span style={{ fontFamily: 'inherit', fontSize: '1rem', color: 'var(--pokemon-yellow)' }}>→</span>
+              <span style={{ fontFamily: 'inherit', fontSize: '0.38rem', color: 'var(--text-secondary)', textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.4 }}>
+                {arrows[i].trigger.replace(/-/g, ' ')}
+                {arrows[i].minLevel ? <><br />Lv. {arrows[i].minLevel}</> : null}
+                {arrows[i].itemName ? <><br />{arrows[i].itemName.replace(/-/g, ' ')}</> : null}
+              </span>
+            </div>
+          )}
+        </>
+      ))}
     </div>
   )
 }
