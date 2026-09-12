@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Pokémon Core ───────────────────────────────────────────────────────────
+
+model Pokemon {
+  id             Int     @id
+  name           String  @unique
+  generation     Int
+  isLegendary    Boolean @default(false)
+  isMythical     Boolean @default(false)
+  isFullyEvolved Boolean @default(false)
+  height         Int
+  weight         Int
+
+  // Base Stats
+  hp          Int
+  attack      Int
+  defense     Int
+  spAttack    Int
+  spDefense   Int
+  speed       Int
+
+  // Sprites
+  spritesFront      String?
+  spritesBack       String?
+  spritesFrontShiny String?
+  spritesBackShiny  String?
+
+  types      PokemonType[]
+  abilities  PokemonAbility[]
+  moves      PokemonMove[]
+  evolutions EvolutionStep[]  @relation("EvolvesFrom")
+  evolvesTo  EvolutionStep[]  @relation("EvolvesTo")
+  teamSlots  TeamPokemon[]
+  gymLeaderTeam GymLeaderPokemon[]
+
+  @@index([generation])
+}
+
+model Type {
+  id   Int    @id
+  name String @unique
+
+  pokemonTypes    PokemonType[]
+  moveTypes       Move[]
+  // type chart
+  attackingTo     TypeEffectiveness[] @relation("Attacker")
+  defendingFrom   TypeEffectiveness[] @relation("Defender")
+}
+
+model TypeEffectiveness {
+  attackerId  Int
+  defenderId  Int
+  multiplier  Float
+
+  attacker Type @relation("Attacker", fields: [attackerId], references: [id])
+  defender Type @relation("Defender", fields: [defenderId], references: [id])
+
+  @@id([attackerId, defenderId])
+}
+
+model PokemonType {
+  pokemonId Int
+  typeId    Int
+  slot      Int
+
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id])
+  type    Type    @relation(fields: [typeId], references: [id])
+
+  @@id([pokemonId, slot])
+}
+
+// ─── Moves ───────────────────────────────────────────────────────────────────
+
+model Move {
+  id          Int     @id
+  name        String  @unique
+  typeId      Int
+  category    String  // physical | special | status
+  power       Int?
+  accuracy    Int?
+  pp          Int
+  priority    Int     @default(0)
+  effect      String?
+  effectChance Int?
+
+  type          Type            @relation(fields: [typeId], references: [id])
+  pokemonMoves  PokemonMove[]
+  gymLeaderMoves GymLeaderPokemonMove[]
+}
+
+model PokemonMove {
+  pokemonId Int
+  moveId    Int
+  learnMethod String
+  levelLearnedAt Int?
+
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id])
+  move    Move    @relation(fields: [moveId], references: [id])
+
+  @@id([pokemonId, moveId, learnMethod])
+}
+
+// ─── Abilities ───────────────────────────────────────────────────────────────
+
+model Ability {
+  id          Int    @id
+  name        String @unique
+  description String?
+
+  pokemonAbilities PokemonAbility[]
+}
+
+model PokemonAbility {
+  pokemonId  Int
+  abilityId  Int
+  slot       Int
+  isHidden   Boolean @default(false)
+
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id])
+  ability Ability @relation(fields: [abilityId], references: [id])
+
+  @@id([pokemonId, slot])
+}
+
+// ─── Evolutions ──────────────────────────────────────────────────────────────
+
+model EvolutionStep {
+  id              Int    @id @default(autoincrement())
+  fromPokemonId   Int
+  toPokemonId     Int
+  trigger         String
+  minLevel        Int?
+  itemName        String?
+  condition       String?
+
+  fromPokemon Pokemon @relation("EvolvesFrom", fields: [fromPokemonId], references: [id])
+  toPokemon   Pokemon @relation("EvolvesTo",   fields: [toPokemonId],   references: [id])
+}
+
+// ─── Gym Leaders ─────────────────────────────────────────────────────────────
+
+model GymLeader {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  region   String
+  city     String
+  typeName String
+  badge    String
+
+  team GymLeaderPokemon[]
+}
+
+model GymLeaderPokemon {
+  id          Int    @id @default(autoincrement())
+  gymLeaderId Int
+  pokemonId   Int
+  level       Int
+  difficulty  String // normal | hard | challenge
+
+  gymLeader GymLeader @relation(fields: [gymLeaderId], references: [id])
+  pokemon   Pokemon   @relation(fields: [pokemonId],   references: [id])
+  moves     GymLeaderPokemonMove[]
+}
+
+model GymLeaderPokemonMove {
+  gymLeaderPokemonId Int
+  moveId             Int
+  slot               Int
+
+  gymLeaderPokemon GymLeaderPokemon @relation(fields: [gymLeaderPokemonId], references: [id])
+  move             Move             @relation(fields: [moveId],             references: [id])
+
+  @@id([gymLeaderPokemonId, slot])
+}
+
+// ─── Teams ───────────────────────────────────────────────────────────────────
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String?
+  createdAt DateTime @default(now())
+
+  pokemon TeamPokemon[]
+  battles Battle[]
+}
+
+model TeamPokemon {
+  id        Int    @id @default(autoincrement())
+  teamId    String
+  pokemonId Int
+  slot      Int
+
+  team    Team    @relation(fields: [teamId],    references: [id])
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id])
+
+  @@unique([teamId, slot])
+}
+
+// ─── Battles ─────────────────────────────────────────────────────────────────
+
+model Battle {
+  id          String   @id @default(cuid())
+  teamId      String
+  gymLeaderId Int
+  difficulty  String
+  seed        String
+  outcome     String?  // victory | defeat | in_progress
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  team Team   @relation(fields: [teamId], references: [id])
+  turns BattleTurn[]
+}
+
+model BattleTurn {
+  id       Int    @id @default(autoincrement())
+  battleId String
+  turnNumber Int
+  events   Json
+
+  battle Battle @relation(fields: [battleId], references: [id])
+
+  @@index([battleId])
+}

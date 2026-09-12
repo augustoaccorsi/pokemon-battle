@@ -1,26 +1,131 @@
 @import "tailwindcss";
 
+/* ── Pokémon Battle Simulator – Design Tokens ─────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand palette */
+  --pokemon-red:    #CC0000;
+  --pokemon-blue:   #3B4CCA;
+  --pokemon-yellow: #FFDE00;
+
+  /* Battle / game UI */
+  --battle-green:   #006400;
+  --battle-hp-full: #50C878;
+  --battle-hp-mid:  #FFD700;
+  --battle-hp-low:  #FF4500;
+
+  /* Panels */
+  --panel-light:    #F8F0D8;
+  --panel-dark:     #5A4A3A;
+  --panel-border:   #8B7355;
+  --panel-shadow:   #3A2A1A;
+
+  /* Pixel border helper */
+  --pixel-border: 2px solid var(--panel-border);
+
+  /* Text */
+  --text-primary:   #2C1810;
+  --text-secondary: #5A4A3A;
+  --text-on-dark:   #F8F0D8;
+
+  /* Type colours (subset) */
+  --type-normal:   #A8A878;
+  --type-fire:     #F08030;
+  --type-water:    #6890F0;
+  --type-grass:    #78C850;
+  --type-electric: #F8D030;
+  --type-ice:      #98D8D8;
+  --type-fighting: #C03028;
+  --type-poison:   #A040A0;
+  --type-ground:   #E0C068;
+  --type-flying:   #A890F0;
+  --type-psychic:  #F85888;
+  --type-bug:      #A8B820;
+  --type-rock:     #B8A038;
+  --type-ghost:    #705898;
+  --type-dragon:   #7038F8;
+  --type-dark:     #705848;
+  --type-steel:    #B8B8D0;
+
+  /* Background */
+  --background: var(--panel-light);
+  --foreground: var(--text-primary);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background:     var(--background);
+  --color-foreground:     var(--foreground);
+  --color-pokemon-red:    var(--pokemon-red);
+  --color-pokemon-blue:   var(--pokemon-blue);
+  --color-pokemon-yellow: var(--pokemon-yellow);
+  --color-battle-green:   var(--battle-green);
+  --color-panel-light:    var(--panel-light);
+  --color-panel-dark:     var(--panel-dark);
+  --color-panel-border:   var(--panel-border);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+html {
+  font-size: 16px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-pixel), "Press Start 2P", "Courier New", monospace;
+  line-height: 1.6;
+  -webkit-font-smoothing: none;
 }
+
+/* ── Pixel-art panel helper ───────────────────────────────────────────────── */
+.panel {
+  background: var(--panel-light);
+  border: var(--pixel-border);
+  border-radius: 4px;
+  box-shadow:
+    2px 2px 0 var(--panel-shadow),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.panel-dark {
+  background: var(--panel-dark);
+  color: var(--text-on-dark);
+  border: 2px solid var(--panel-shadow);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* ── HP Bar ───────────────────────────────────────────────────────────────── */
+.hp-bar-full   { background: var(--battle-hp-full); }
+.hp-bar-mid    { background: var(--battle-hp-mid); }
+.hp-bar-low    { background: var(--battle-hp-low); }
+
+/* ── Menu button (battle) ─────────────────────────────────────────────────── */
+.battle-btn {
+  background: var(--panel-light);
+  border: var(--pixel-border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.battle-btn:hover {
+  background: var(--pokemon-yellow);
+}
+.battle-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+/* ── Scrollbar (retro) ───────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 8px; }
+::-webkit-scrollbar-track { background: var(--panel-dark); }
+::-webkit-scrollbar-thumb { background: var(--panel-border); }
