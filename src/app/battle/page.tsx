@@ -1,12 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { BattleScreen } from '@/components/battle/BattleScreen'
 
 const STORAGE_KEY = 'activeBattleId'
 
 export default function BattlePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <p style={{ fontSize: '0.6rem', letterSpacing: '0.08em' }} className="animate-pulse">
+          LOADING…
+        </p>
+      </div>
+    }>
+      <BattlePageInner />
+    </Suspense>
+  )
+}
+
+function BattlePageInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
