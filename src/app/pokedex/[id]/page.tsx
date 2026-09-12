@@ -116,18 +116,8 @@ export default async function PokemonDetailPage({ params }: PageProps) {
     <div style={{ minHeight: '100vh', background: 'var(--panel-light)', padding: 16 }}>
       {/* ── Back navigation ──────────────────────── */}
       <div style={{ marginBottom: 16 }}>
-        <Link
-          href="/pokedex"
-          style={{
-            fontFamily:    'inherit',
-            fontSize:      '0.5rem',
-            color:         'var(--text-secondary)',
-            textDecoration: 'none',
-            letterSpacing: '0.05em',
-          }}
-          onMouseOver={undefined}
-        >
-          ← Back to Pokédex
+        <Link href="/pokedex" className="battle-btn" style={{ fontSize: '0.5rem', padding: '6px 12px' }}>
+          ◀ POKÉDEX
         </Link>
       </div>
 
