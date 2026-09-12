@@ -21,6 +21,14 @@ const TYPE_BG: Record<string, string> = {
   fire: 'var(--type-fire)',
   ground: 'var(--type-ground)',
   normal: 'var(--type-normal)',
+  flying: 'var(--type-flying)',
+  bug: 'var(--type-bug)',
+  ghost: 'var(--type-ghost)',
+  fighting: 'var(--type-fighting)',
+  steel: 'var(--type-steel)',
+  ice: 'var(--type-ice)',
+  dragon: 'var(--type-dragon)',
+  dark: 'var(--type-dark)',
 }
 
 const DIFFICULTY_LABELS: Record<Difficulty, string> = {

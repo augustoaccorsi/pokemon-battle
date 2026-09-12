@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import type { BattleState, BattleEvent, BattleAction, BattlePokemon } from '@/game/battle'
 import { BattleSprite } from './BattleSprite'
 import { BattleMessage } from './BattleMessage'
@@ -71,6 +72,7 @@ interface BattleScreenProps {
 }
 
 export function BattleScreen({ battleId }: BattleScreenProps) {
+  const router = useRouter()
   const [state, setState] = useState<BattleState | null>(null)
   const [uiPhase, setUiPhase] = useState<UIPhase>('selecting')
   const [messages, setMessages] = useState<string[]>(['Loading battle…'])
@@ -328,9 +330,7 @@ export function BattleScreen({ battleId }: BattleScreenProps) {
                 className="battle-btn"
                 onClick={() => {
                   if (confirm('Run from battle?')) {
-                    setUiPhase('ended')
-                    setState(s => s ? { ...s, phase: 'ended', winner: 'enemy' } : s)
-                    setMessages(['Got away safely!'])
+                    router.push('/')
                   }
                 }}
                 disabled={uiPhase === 'animating'}

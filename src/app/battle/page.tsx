@@ -32,14 +32,8 @@ export default function BattlePage() {
       return
     }
 
-    // 2. Resume from localStorage (no query params)
+    // 2. No query params → go to gym leader selection to start a new battle
     if (!leaderIdParam && !difficultyParam) {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        setBattleId(stored)
-        return
-      }
-      // Nothing to load — go back to leader selection
       router.replace('/gym-leaders')
       return
     }
@@ -54,20 +48,26 @@ export default function BattlePage() {
         // In a full app, teamId comes from session/profile.
         // For the scaffold, we use a fixed placeholder teamId stored in localStorage.
         const teamId = localStorage.getItem('activeTeamId') ?? 'placeholder-team'
+        const teamLevel = Number(localStorage.getItem('teamLevel') ?? '50')
 
         const res = await fetch('/api/battles', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             teamId,
+            teamLevel,
             gymLeaderId: Number(leaderIdParam),
             difficulty: difficultyParam,
           }),
         })
 
         if (!res.ok) {
-          const errBody = (await res.json()) as { error?: string }
-          throw new Error(errBody.error ?? 'Failed to create battle')
+          let msg = 'Failed to create battle'
+          try {
+            const errBody = (await res.json()) as { error?: string }
+            msg = errBody.error ?? msg
+          } catch { /* non-JSON error body */ }
+          throw new Error(msg)
         }
 
         const { battleId: newId } = (await res.json()) as { battleId: string }
