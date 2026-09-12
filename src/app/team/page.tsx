@@ -16,6 +16,7 @@ export default function TeamBuilderPage() {
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [team, setTeam] = useState<(PokemonListItem | null)[]>(EMPTY_TEAM);
+  const [teamLevel, setTeamLevel] = useState<number>(50);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -131,6 +132,10 @@ export default function TeamBuilderPage() {
       }
 
       setSavedTeamId(data.teamId ?? null);
+      if (data.teamId) {
+        localStorage.setItem('activeTeamId', data.teamId);
+        localStorage.setItem('teamLevel', String(teamLevel));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -209,6 +214,57 @@ export default function TeamBuilderPage() {
             )}
           </div>
         ))}
+      </motion.div>
+
+      {/* Level selector */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.15 }}
+        className="flex items-center gap-3 panel px-4 py-2"
+        style={{ maxWidth: 360, width: '100%' }}
+      >
+        <span style={{ fontSize: '0.5rem', color: 'var(--text-secondary)', letterSpacing: '0.06em' }}>
+          LEVEL
+        </span>
+        <div className="flex gap-1">
+          {[50, 75, 100].map((lvl) => (
+            <button
+              key={lvl}
+              type="button"
+              onClick={() => setTeamLevel(lvl)}
+              className="battle-btn"
+              style={{
+                fontSize: '0.5rem',
+                padding: '4px 10px',
+                background: teamLevel === lvl ? 'var(--pokemon-red)' : 'var(--panel-light)',
+                color: teamLevel === lvl ? '#fff' : 'var(--text-primary)',
+              }}
+            >
+              {lvl}
+            </button>
+          ))}
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={teamLevel}
+            onChange={(e) => {
+              const v = Math.min(100, Math.max(1, Number(e.target.value)))
+              setTeamLevel(v)
+            }}
+            style={{
+              width: 48,
+              fontFamily: 'inherit',
+              fontSize: '0.5rem',
+              padding: '4px 6px',
+              border: '2px solid var(--panel-border)',
+              background: 'var(--panel-light)',
+              color: 'var(--text-primary)',
+              textAlign: 'center',
+            }}
+          />
+        </div>
       </motion.div>
 
       {/* Action buttons */}

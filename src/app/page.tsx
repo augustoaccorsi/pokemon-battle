@@ -13,9 +13,9 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   { icon: '📖', label: 'Pokédex',          href: '/pokedex', description: 'Browse Gen I–III Pokémon' },
-  { icon: '⚔️',  label: 'Battle Simulator', href: '/battle',  description: 'Fight gym leaders' },
+  { icon: '⚔️',  label: 'Battle Simulator', href: '/gym-leaders',  description: 'Fight gym leaders' },
   { icon: '👥', label: 'Build Your Team',  href: '/team',    description: 'Assemble your party' },
-  { icon: '🏆', label: 'Gym Leaders',      href: '/gym',     description: 'View all challengers' },
+  { icon: '🏆', label: 'Gym Leaders',      href: '/gym-leaders', description: 'View all challengers' },
 ]
 
 const container: Variants = {

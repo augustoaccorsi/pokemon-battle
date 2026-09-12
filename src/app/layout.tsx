@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Press_Start_2P } from "next/font/google";
+import HomeButton from "@/components/ui/HomeButton";
 import "./globals.css";
 
 const pressStart2P = Press_Start_2P({
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en" className={`${pressStart2P.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-[--background] text-[--foreground]">
+        <HomeButton />
         {children}
       </body>
     </html>

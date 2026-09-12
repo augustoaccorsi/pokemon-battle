@@ -60,8 +60,22 @@ async function buildBattlePokemon(
   const baseHp = dbPokemon?.hp ?? 45
   const maxHp = calcHp(baseHp, level)
 
+  // If no moves provided, load the Pokémon's first 4 level-up moves from DB
+  let resolvedMoveNames = moveNames
+  if (resolvedMoveNames.length === 0) {
+    const dbMoves = await db.pokemonMove.findMany({
+      where: { pokemonId, learnMethod: 'level-up' },
+      include: { move: true },
+      orderBy: { levelLearnedAt: 'asc' },
+      take: 4,
+    })
+    resolvedMoveNames = dbMoves.map((pm: { move: { name: string } }) => pm.move.name)
+    // Last resort fallback
+    if (resolvedMoveNames.length === 0) resolvedMoveNames = ['tackle']
+  }
+
   const moves = await Promise.all(
-    moveNames.slice(0, 4).map((m, i) => resolveMove(m, i)),
+    resolvedMoveNames.slice(0, 4).map((m, i) => resolveMove(m, i)),
   )
 
   return {
@@ -86,6 +100,7 @@ async function buildBattlePokemon(
 
 interface CreateBattleBody {
   teamId: string
+  teamLevel?: number
   gymLeaderId: number
   difficulty: 'normal' | 'hard' | 'challenge'
 }
@@ -98,7 +113,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { teamId, gymLeaderId, difficulty } = body
+  const { teamId, teamLevel, gymLeaderId, difficulty } = body
+  const playerLevel = Math.min(100, Math.max(1, teamLevel ?? 50))
 
   if (!teamId || !gymLeaderId || !difficulty) {
     return NextResponse.json(
@@ -137,7 +153,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Team not found or empty' }, { status: 404 })
   }
 
-  const DEFAULT_LEVEL = 50
+  const DEFAULT_LEVEL = playerLevel
 
   // Build player side
   const playerPokemon: BattlePokemon[] = await Promise.all(
