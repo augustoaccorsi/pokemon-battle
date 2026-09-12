@@ -115,7 +115,7 @@ export default async function PokemonDetailPage({ params }: PageProps) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--panel-light)', padding: 16 }}>
       {/* ── Back navigation ──────────────────────── */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, marginLeft: 80 }}>
         <Link href="/pokedex" className="battle-btn" style={{ fontSize: '0.5rem', padding: '6px 12px' }}>
           ◀ POKÉDEX
         </Link>
