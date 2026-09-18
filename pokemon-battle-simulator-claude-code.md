@@ -296,7 +296,7 @@ O projeto deve inicialmente definir claramente **qual conjunto de regras está s
 
 Como a estética é FireRed, começar com regras de **Generation III / FireRed**, em vez de misturar mecânicas de gerações posteriores.
 
-Isso significa documentar decisões como:
+Isso significa  umentar decisões como:
 
 - physical/special por TYPE
 - abilities disponíveis

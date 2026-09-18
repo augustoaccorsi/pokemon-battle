@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280, height=720" />
+  <title>Pokémon Battle Simulator — Brag Video</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'PressStart2P';
+      src: url('assets/fonts/PressStart2P.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #5A4A3A;
+      margin: 0;
+      font-family: 'PressStart2P', 'Courier New', monospace;
+    }
+
+    #root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #5A4A3A;
+    }
+
+    .clip {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Panel widget (faithful to the app) ── */
+    .pokemon-panel {
+      background: #F8F0D8;
+      border: 4px solid #8B7355;
+      box-shadow: 4px 4px 0 #3A2A1A;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: #CC0000;
+      padding: 14px 20px;
+      text-align: center;
+      border-bottom: 4px solid #3A2A1A;
+    }
+
+    .header-dots {
+      font-size: 9px;
+      color: #FFE21C;
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .panel-title {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 13px;
+      color: #fff;
+      letter-spacing: 0.06em;
+      line-height: 1.6;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+    }
+
+    .panel-subtitle {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 8px;
+      color: #FFE21C;
+      margin-top: 8px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Menu rows ── */
+    .menu-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 20px;
+      border-bottom: 2px solid #8B7355;
+      background: #F8F0D8;
+      transition: none;
+    }
+
+    .menu-row:last-of-type { border-bottom: none; }
+
+    .menu-icon { font-size: 20px; flex-shrink: 0; line-height: 1; }
+
+    .menu-label {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: bold;
+      color: #2C1810;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .menu-desc {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 6px;
+      color: #5A4A3A;
+      margin-top: 3px;
+      letter-spacing: 0.04em;
+    }
+
+    .menu-arrow {
+      margin-left: auto;
+      font-size: 11px;
+      color: #5A4A3A;
+      flex-shrink: 0;
+    }
+
+    .panel-footer {
+      background: #5A4A3A;
+      padding: 8px 20px;
+      border-top: 4px solid #3A2A1A;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 6px;
+      color: #F8F0D8;
+      opacity: 0.55;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Gym leader card ── */
+    .gym-card {
+      background: #F8F0D8;
+      border: 3px solid #8B7355;
+      box-shadow: 3px 3px 0 #3A2A1A;
+      border-radius: 4px;
+      overflow: hidden;
+      padding: 10px;
+      width: 196px;
+    }
+
+    .type-badge {
+      width: 100%;
+      text-align: center;
+      padding: 5px;
+      border-radius: 3px;
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 7px;
+      color: #fff;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .leader-name {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: bold;
+      color: #2C1810;
+      letter-spacing: 0.03em;
+      margin-bottom: 5px;
+    }
+
+    .leader-city {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 6px;
+      color: #5A4A3A;
+      margin-bottom: 7px;
+    }
+
+    .leader-badge-label {
+      background: #5A4A3A;
+      color: #F8F0D8;
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 6px;
+      padding: 3px 6px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    /* ── HP bar ── */
+    .hp-panel {
+      background: #F8F0D8;
+      border: 3px solid #8B7355;
+      box-shadow: 2px 2px 0 #3A2A1A;
+      padding: 9px 13px;
+      min-width: 210px;
+      max-width: 260px;
+    }
+
+    .hp-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 5px;
+    }
+
+    .hp-name {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: bold;
+      color: #2C1810;
+      letter-spacing: 0.03em;
+    }
+
+    .hp-level {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 7px;
+      color: #5A4A3A;
+    }
+
+    .hp-track {
+      width: 100%;
+      height: 7px;
+      background: #8B7355;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .hp-fill-green { height: 100%; background: #50C878; border-radius: 2px; }
+    .hp-fill-red   { height: 100%; background: #FF4500; border-radius: 2px; }
+
+    .hp-nums {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 7px;
+      color: #5A4A3A;
+    }
+
+    /* ── Battle message box ── */
+    .battle-message-box {
+      background: #5A4A3A;
+      border: 4px solid #3A2A1A;
+      padding: 13px 16px;
+      min-height: 64px;
+      position: relative;
+    }
+
+    .battle-msg-text {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 9px;
+      color: #F8F0D8;
+      letter-spacing: 0.05em;
+      line-height: 1.8;
+      position: absolute;
+      inset: 13px 16px;
+    }
+
+    /* ── Move buttons ── */
+    .move-btn {
+      background: #F8F0D8;
+      border: 2px solid #8B7355;
+      padding: 10px 6px;
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 7px;
+      color: #2C1810;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      text-align: center;
+    }
+
+    /* ── Pokémon sprites ── */
+    .pokemon-sprite {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* ── Stats scene ── */
+    .stat-line {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 20px;
+      color: #F8F0D8;
+      letter-spacing: 0.06em;
+      text-align: center;
+      line-height: 1;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    }
+
+    .stat-line-sm {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 14px;
+      color: #F8F0D8;
+      letter-spacing: 0.06em;
+      text-align: center;
+      line-height: 1;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    }
+
+    /* ── Outro ── */
+    .outro-main {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 13px;
+      color: #F8F0D8;
+      letter-spacing: 0.05em;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .outro-sub {
+      font-family: 'PressStart2P', 'Courier New', monospace;
+      font-size: 7px;
+      color: #F8F0D8;
+      opacity: 0.45;
+      text-align: center;
+      letter-spacing: 0.05em;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div
+    id="root"
+    data-composition-id="pokemon-brag"
+    data-start="0"
+    data-width="1280"
+    data-height="720"
+    data-duration="21.2"
+  >
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SCENE 1 — HOOK (0–2.5s)
+         The Game Boy panel materialises. Pokémon red header, pixel font, yellow gen line.
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="scene-hook" class="clip" data-start="0" data-duration="2.5" data-track-index="1">
+      <div id="hook-panel" class="pokemon-panel" style="width: 520px;">
+        <div class="panel-header">
+          <div id="hook-dots" class="header-dots">◆ ◆ ◆</div>
+          <div id="hook-title" class="panel-title">POKÉMON<br>BATTLE SIMULATOR</div>
+          <div id="hook-sub" class="panel-subtitle">GEN I · II · III</div>
+        </div>
+        <div style="background: #F8F0D8; padding: 10px 20px; text-align: center;">
+          <span style="font-family: 'PressStart2P', 'Courier New', monospace; font-size: 7px; color: #5A4A3A; opacity: 0.55; letter-spacing: 0.04em;">A fan-made browser battle simulator</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SCENE 2 — HOME MENU (2.5–6.2s)
+         Four menu rows stagger in beat-grid (4.23, 4.75, 5.28, 5.80).
+         Hover fires on "Battle Simulator" row at ~6.05s.
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="scene-menu" class="clip" data-start="2.5" data-duration="3.7" data-track-index="2">
+      <div class="pokemon-panel" style="width: 520px;">
+        <div class="panel-header">
+          <div class="header-dots">◆ ◆ ◆</div>
+          <div class="panel-title">POKÉMON<br>BATTLE SIMULATOR</div>
+          <div class="panel-subtitle">GEN I · II · III</div>
+        </div>
+        <div style="padding: 4px 0;">
+          <div id="menu-row-1" class="menu-row">
+            <span class="menu-icon">📖</span>
+            <div>
+              <div class="menu-label">Pokédex</div>
+              <div class="menu-desc">Browse Gen I–III Pokémon</div>
+            </div>
+            <span class="menu-arrow">▶</span>
+          </div>
+          <div id="menu-row-2" class="menu-row">
+            <span class="menu-icon">⚔️</span>
+            <div>
+              <div class="menu-label">Battle Simulator</div>
+              <div class="menu-desc">Fight gym leaders</div>
+            </div>
+            <span class="menu-arrow">▶</span>
+          </div>
+          <div id="menu-row-3" class="menu-row">
+            <span class="menu-icon">👥</span>
+            <div>
+              <div class="menu-label">Build Your Team</div>
+              <div class="menu-desc">Assemble your party</div>
+            </div>
+            <span class="menu-arrow">▶</span>
+          </div>
+          <div id="menu-row-4" class="menu-row">
+            <span class="menu-icon">🏆</span>
+            <div>
+              <div class="menu-label">Gym Leaders</div>
+              <div class="menu-desc">View all challengers</div>
+            </div>
+            <span class="menu-arrow">▶</span>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <span class="footer-text">Fan project — not an official Pokémon product.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SCENE 3 — GYM LEADERS (6.2–9.8s)
+         Region header fades in, 4 Kanto cards slide up beat-grid (6.34, 6.86, 7.40, 7.92).
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="scene-gym" class="clip" data-start="6.2" data-duration="3.6" data-track-index="3"
+      style="flex-direction: column; background: #5A4A3A; padding: 32px; align-items: flex-start; justify-content: center;">
+      <div id="gym-region-header"
+        style="font-family: 'PressStart2P', 'Courier New', monospace; font-size: 11px; letter-spacing: 0.12em; color: #CC0000; border-bottom: 2px solid #CC0000; padding-bottom: 6px; margin-bottom: 24px; width: 100%;">
+        ◈ KANTO REGION
+      </div>
+      <div style="display: flex; gap: 18px; width: 100%;">
+        <div id="gym-card-1" class="gym-card">
+          <div class="type-badge" style="background: #B8A038;">ROCK</div>
+          <div class="leader-name">Brock</div>
+          <div class="leader-city">Pewter City</div>
+          <div class="leader-badge-label">Boulder Badge</div>
+        </div>
+        <div id="gym-card-2" class="gym-card">
+          <div class="type-badge" style="background: #6890F0;">WATER</div>
+          <div class="leader-name">Misty</div>
+          <div class="leader-city">Cerulean City</div>
+          <div class="leader-badge-label">Cascade Badge</div>
+        </div>
+        <div id="gym-card-3" class="gym-card">
+          <div class="type-badge" style="background: #F8D030; color: #2C1810; text-shadow: none;">ELECTRIC</div>
+          <div class="leader-name">Lt. Surge</div>
+          <div class="leader-city">Vermilion City</div>
+          <div class="leader-badge-label">Thunder Badge</div>
+        </div>
+        <div id="gym-card-4" class="gym-card">
+          <div class="type-badge" style="background: #78C850;">GRASS</div>
+          <div class="leader-name">Erika</div>
+          <div class="leader-city">Celadon City</div>
+          <div class="leader-badge-label">Rainbow Badge</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SCENE 4 — BATTLE (9.8–15.2s)
+         HP bars, sprites, move menu.
+         Move selected at 10.54 (beat-locked), HP drains, messages swap.
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="scene-battle" class="clip" data-start="9.8" data-duration="5.4" data-track-index="4"
+      style="flex-direction: column; background: #5A4A3A; padding: 28px 40px 24px; align-items: stretch; justify-content: flex-start; gap: 12px;">
+
+      <!-- HP bars row -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div id="hp-enemy" class="hp-panel">
+          <div class="hp-name-row">
+            <span class="hp-name">GENGAR</span>
+            <span class="hp-level">Lv.54</span>
+          </div>
+          <div class="hp-track">
+            <div id="hp-enemy-fill" class="hp-fill-green" style="width: 100%;"></div>
+          </div>
+        </div>
+        <div id="hp-player" class="hp-panel">
+          <div class="hp-name-row">
+            <span class="hp-name">CHARIZARD</span>
+            <span class="hp-level">Lv.55</span>
+          </div>
+          <div class="hp-track">
+            <div class="hp-fill-green" style="width: 100%;"></div>
+          </div>
+          <div class="hp-nums">153/153</div>
+        </div>
+      </div>
+
+      <!-- Sprite area -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 0 60px; flex: 1;">
+        <div id="sprite-enemy" style="display: flex; align-items: flex-end;">
+          <img class="pokemon-sprite" src="assets/sprites/gengar-front.png" width="128" height="128" alt="GENGAR" style="display: block;" />
+        </div>
+        <div id="sprite-player" style="display: flex; align-items: flex-end;">
+          <img class="pokemon-sprite" src="assets/sprites/charizard-back.png" width="128" height="128" alt="CHARIZARD" style="display: block;" />
+        </div>
+      </div>
+
+      <!-- Message + Move menu row -->
+      <div style="display: flex; gap: 12px; align-items: stretch;">
+        <div id="battle-msg-wrap" class="battle-message-box" style="flex: 1; min-height: 68px;">
+          <div id="msg-initial" class="battle-msg-text">What will<br>CHARIZARD do?</div>
+          <div id="msg-attack"  class="battle-msg-text" style="opacity: 0;">CHARIZARD used<br>FLAMETHROWER!</div>
+          <div id="msg-super"   class="battle-msg-text" style="opacity: 0;">It's super effective!</div>
+        </div>
+        <div id="move-menu" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 330px;">
+          <div id="move-1" class="move-btn" style="background: #FFDE00;">FLAMETHROWER</div>
+          <div class="move-btn">FLY</div>
+          <div class="move-btn">SLASH</div>
+          <div class="move-btn">SMOKESCREEN</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SCENE 5 — STATS (15.2–18.2s)
+         Three lines, each held ~1.1s before the next (NOT every beat — too fast to read).
+         Beat near 15.28, 16.34, 17.38.
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="scene-stats" class="clip" data-start="15.2" data-duration="3.0" data-track-index="5"
+      style="flex-direction: column; gap: 28px; background: #5A4A3A;">
+      <div id="stat-1" class="stat-line">57 UNIT TESTS.</div>
+      <div id="stat-2" class="stat-line-sm">GEN III DAMAGE FORMULA.</div>
+      <div id="stat-3" class="stat-line">SEEDED RNG.</div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SCENE 6 — OUTRO (18.2–21.2s)
+         The actual footer disclaimer from the app. Music ducks. One soft bell.
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="scene-outro" class="clip" data-start="18.2" data-duration="3.0" data-track-index="6"
+      style="flex-direction: column; background: #5A4A3A;">
+      <div id="outro-main" class="outro-main">Fan project — not an official Pokémon product.</div>
+      <div id="outro-sub" class="outro-sub">Pokémon © Nintendo / Game Freak / Creatures Inc.</div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         AUDIO
+         Music on track 10. SFX on tracks 11+. No crossorigin on any element.
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <audio id="bg-music"
+      data-start="0" data-duration="21.2"
+      data-track-index="10" data-volume="0.35"
+      src="assets/music/happy-beats-business-moves-vol-9-by-ende-dot-app.mp3"></audio>
+
+    <!-- Scene 2: menu row drops (beat-grid: 4.23, 4.75, 5.28, 5.80) -->
+    <audio id="sfx-menu-1" data-start="4.22" data-duration="0.11" data-track-index="11" data-volume="0.62" src="assets/sfx/interface/drop_001.ogg"></audio>
+    <audio id="sfx-menu-2" data-start="4.74" data-duration="0.19" data-track-index="12" data-volume="0.62" src="assets/sfx/interface/drop_002.ogg"></audio>
+    <audio id="sfx-menu-3" data-start="5.27" data-duration="0.11" data-track-index="13" data-volume="0.62" src="assets/sfx/interface/drop_001.ogg"></audio>
+    <audio id="sfx-menu-4" data-start="5.79" data-duration="0.19" data-track-index="14" data-volume="0.62" src="assets/sfx/interface/drop_002.ogg"></audio>
+
+    <!-- Scene 3: gym card reveals (beat-locked: 6.33≈6.34, then beat-grid: 6.85, 7.39, 7.91) -->
+    <audio id="sfx-card-1" data-start="6.33" data-duration="0.46" data-track-index="15" data-volume="0.70" src="assets/sfx/casino/card-place-2.ogg"></audio>
+    <audio id="sfx-card-2" data-start="6.85" data-duration="0.46" data-track-index="16" data-volume="0.70" src="assets/sfx/casino/card-place-2.ogg"></audio>
+    <audio id="sfx-card-3" data-start="7.39" data-duration="0.46" data-track-index="17" data-volume="0.70" src="assets/sfx/casino/card-place-2.ogg"></audio>
+    <audio id="sfx-card-4" data-start="7.91" data-duration="0.46" data-track-index="18" data-volume="0.70" src="assets/sfx/casino/card-place-2.ogg"></audio>
+
+    <!-- Scene 4: move click (beat-locked: 10.54s) + HP drain -->
+    <audio id="sfx-move-click" data-start="10.53" data-duration="0.10" data-track-index="19" data-volume="0.72" src="assets/sfx/interface/click_001.ogg"></audio>
+    <audio id="sfx-hp-drain"   data-start="10.62" data-duration="0.62" data-track-index="20" data-volume="0.52" src="assets/sfx/interface/switch_001.ogg"></audio>
+
+    <!-- Scene 5: stat line hits (near beats 15.28, 16.34, 17.38) -->
+    <audio id="sfx-stat-1" data-start="15.27" data-duration="0.12" data-track-index="21" data-volume="0.55" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
+    <audio id="sfx-stat-2" data-start="16.33" data-duration="0.12" data-track-index="22" data-volume="0.55" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
+    <audio id="sfx-stat-3" data-start="17.37" data-duration="0.12" data-track-index="23" data-volume="0.55" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
+
+    <!-- Scene 6: soft bell at 0.5s into outro -->
+    <audio id="sfx-outro-bell" data-start="18.70" data-duration="0.12" data-track-index="24" data-volume="0.48" src="assets/sfx/interface/bong_001.ogg"></audio>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // ─── SCENE 1: HOOK (0–2.5s) ───────────────────────────────────────────────
+    // Panel slides up from slight offset and fades in
+    tl.fromTo('#hook-panel',
+      { y: 32, opacity: 0 },
+      { y: 0,  opacity: 1, duration: 0.55, ease: 'power2.out' }, 0.08);
+    // Dots, title, subtitle stagger
+    tl.fromTo('#hook-dots',
+      { opacity: 0 },
+      { opacity: 1, duration: 0.3 }, 0.55);
+    tl.fromTo('#hook-title',
+      { y: 8, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.78);
+    tl.fromTo('#hook-sub',
+      { opacity: 0 },
+      { opacity: 1, duration: 0.35 }, 1.30);
+
+    // ─── SCENE 2: HOME MENU (2.5–6.2s) ───────────────────────────────────────
+    // Rows start invisible, stagger in on beat-grid (beat-locked: 4.23s for row 1)
+    gsap.set('#menu-row-1, #menu-row-2, #menu-row-3, #menu-row-4', { opacity: 0, x: -18 });
+
+    tl.fromTo('#menu-row-1',
+      { x: -18, opacity: 0 },
+      { x: 0,   opacity: 1, duration: 0.3, ease: 'power2.out' }, 4.22); // beat-grid: 4.23s
+    tl.fromTo('#menu-row-2',
+      { x: -18, opacity: 0 },
+      { x: 0,   opacity: 1, duration: 0.3, ease: 'power2.out' }, 4.74); // beat-grid: 4.75s
+    tl.fromTo('#menu-row-3',
+      { x: -18, opacity: 0 },
+      { x: 0,   opacity: 1, duration: 0.3, ease: 'power2.out' }, 5.27); // beat-grid: 5.28s
+    tl.fromTo('#menu-row-4',
+      { x: -18, opacity: 0 },
+      { x: 0,   opacity: 1, duration: 0.3, ease: 'power2.out' }, 5.79); // beat-grid: 5.80s
+
+    // Hover on "Battle Simulator" row
+    tl.to('#menu-row-2', { backgroundColor: '#FFDE00', paddingLeft: '26px', duration: 0.2 }, 6.05);
+
+    // ─── SCENE 3: GYM LEADERS (6.2–9.8s) ─────────────────────────────────────
+    gsap.set('#gym-region-header', { opacity: 0, y: -6 });
+    gsap.set('#gym-card-1, #gym-card-2, #gym-card-3, #gym-card-4', { opacity: 0, y: 28 });
+
+    tl.fromTo('#gym-region-header',
+      { opacity: 0, y: -6 },
+      { opacity: 1, y: 0,  duration: 0.35 }, 6.22);
+
+    // Cards: beat-locked 6.34, then beat-grid 6.86, 7.40, 7.92
+    tl.fromTo('#gym-card-1',
+      { y: 28, opacity: 0 },
+      { y: 0,  opacity: 1, duration: 0.35, ease: 'power2.out' }, 6.33); // beat-locked: 6.34s
+    tl.fromTo('#gym-card-2',
+      { y: 28, opacity: 0 },
+      { y: 0,  opacity: 1, duration: 0.35, ease: 'power2.out' }, 6.85); // beat-grid
+    tl.fromTo('#gym-card-3',
+      { y: 28, opacity: 0 },
+      { y: 0,  opacity: 1, duration: 0.35, ease: 'power2.out' }, 7.39); // beat-grid
+    tl.fromTo('#gym-card-4',
+      { y: 28, opacity: 0 },
+      { y: 0,  opacity: 1, duration: 0.35, ease: 'power2.out' }, 7.91); // beat-grid
+
+    // ─── SCENE 4: BATTLE (9.8–15.2s) ─────────────────────────────────────────
+    gsap.set('#hp-enemy, #hp-player, #sprite-enemy, #sprite-player, #battle-msg-wrap, #move-menu', { opacity: 0 });
+
+    tl.fromTo('#sprite-enemy',    { opacity: 0, scale: 0.82 }, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.3)' }, 9.88);
+    tl.fromTo('#sprite-player',   { opacity: 0, scale: 0.82 }, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.3)' }, 9.94);
+    tl.fromTo('#hp-enemy',        { opacity: 0 }, { opacity: 1, duration: 0.4 }, 9.90);
+    tl.fromTo('#hp-player',       { opacity: 0 }, { opacity: 1, duration: 0.4 }, 9.96);
+    tl.fromTo('#battle-msg-wrap', { opacity: 0 }, { opacity: 1, duration: 0.3 }, 10.08);
+    tl.fromTo('#move-menu',       { opacity: 0 }, { opacity: 1, duration: 0.3 }, 10.15);
+
+    // Move selected flash at beat 10.54s (beat-locked)
+    tl.fromTo('#move-1', { scale: 1.08 }, { scale: 1, duration: 0.3, ease: 'power2.out' }, 10.54); // beat-locked: 10.54s
+
+    // HP drains to 35% — enemy is super-effective-hit, starts at 10.62s
+    tl.to('#hp-enemy-fill', { width: '35%', duration: 0.9, ease: 'power2.inOut' }, 10.62);
+    tl.to('#hp-enemy-fill', { backgroundColor: '#FF4500', duration: 0.0 }, 10.62);
+
+    // Message cycle (using opacity swaps for seekability)
+    // "What will CHARIZARD do?" fades out right before beat 10.54
+    tl.to('#msg-initial', { opacity: 0, duration: 0.2 }, 10.45);
+    // "CHARIZARD used FLAMETHROWER!" fades in at beat 10.54
+    tl.fromTo('#msg-attack', { opacity: 0 }, { opacity: 1, duration: 0.25 }, 10.55);
+    // "It's super effective!" swaps in at beat 12.65s (beat-locked)
+    tl.to('#msg-attack', { opacity: 0, duration: 0.2 }, 12.55);
+    tl.fromTo('#msg-super', { opacity: 0 }, { opacity: 1, duration: 0.25 }, 12.64); // beat-locked: 12.65s
+
+    // ─── SCENE 5: STATS (15.2–18.2s) ─────────────────────────────────────────
+    // Each stat held ~1.1s (NOT every 0.52s beat — text must be readable)
+    gsap.set('#stat-1, #stat-2, #stat-3', { opacity: 0, y: 14 });
+
+    tl.fromTo('#stat-1', { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: 'power2.out' }, 15.27); // near beat 15.28s
+    tl.fromTo('#stat-2', { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: 'power2.out' }, 16.33); // near beat 16.34s
+    tl.fromTo('#stat-3', { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: 'power2.out' }, 17.37); // near beat 17.38s
+
+    // ─── SCENE 6: OUTRO (18.2–21.2s) ─────────────────────────────────────────
+    gsap.set('#outro-main, #outro-sub', { opacity: 0, y: 10 });
+
+    tl.fromTo('#outro-main', { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: 'power2.out' }, 18.40);
+    tl.fromTo('#outro-sub',  { opacity: 0 }, { opacity: 0.45, duration: 0.4 }, 19.10);
+
+    // Music fade to 0.10 during outro (Hyperframes volume tween)
+    tl.to(document.getElementById('bg-music'), { volume: 0.10, duration: 1.4 }, 18.20);
+
+    window.__timelines['pokemon-brag'] = tl;
+  </script>
+</body>
+</html>

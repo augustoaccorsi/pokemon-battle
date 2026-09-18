@@ -1,0 +1,2 @@
+Built a Pokémon Battle Simulator in the browser. Gen I–III, gym leaders, seeded RNG, the full Gen III damage formula.
+57 unit tests. No "streamlined workflow" in sight.
