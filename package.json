@@ -20,7 +20,7 @@
     "docker:up": "sh scripts/docker-up.sh",
     "setup": "npm run db:migrate && npm run import",
     "setup:dev": "npm run db:generate && npm run db:push && npm run import",
-    "start:fresh": "npm run docker:up && npm run db:migrate && npm run import && npm run dev",
+    "start:fresh": "npm run docker:up && npm run db:migrate && npm run db:generate && npm run import && npm run dev",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {

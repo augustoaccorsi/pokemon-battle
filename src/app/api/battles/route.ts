@@ -23,8 +23,14 @@ function calcStat(base: number, level: number): number {
 // ─── Build BattleMove from DB (with sensible fallbacks) ──────────────────────
 
 async function resolveMove(moveName: string, slot: number): Promise<BattleMove> {
+  const normalized = moveName.toLowerCase().replace(/\s+/g, '-')
   const found = await db.move.findFirst({
-    where: { name: { equals: moveName, mode: 'insensitive' } },
+    where: {
+      OR: [
+        { name: { equals: moveName,   mode: 'insensitive' } },
+        { name: { equals: normalized, mode: 'insensitive' } },
+      ],
+    },
     include: { type: true },
   })
   const pp = found?.pp ?? 20

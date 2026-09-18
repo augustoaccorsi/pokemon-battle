@@ -25,18 +25,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return Math.min(100, Math.max(1, lvl));
   });
 
-  const team = await prisma.team.create({
-    data: {
-      name: name ?? null,
-      pokemon: {
-        create: pokemonIds.map((pokemonId, slot) => ({
-          pokemonId,
-          slot,
-          level: resolvedLevels[slot],
-        })),
+  try {
+    const team = await prisma.team.create({
+      data: {
+        name: name ?? null,
+        pokemon: {
+          create: pokemonIds.map((pokemonId, slot) => ({
+            pokemonId,
+            slot,
+            level: resolvedLevels[slot],
+          })),
+        },
       },
-    },
-  });
+    });
 
-  return NextResponse.json({ teamId: team.id }, { status: 201 });
+    return NextResponse.json({ teamId: team.id }, { status: 201 });
+  } catch (err) {
+    console.error("[POST /api/teams]", err);
+    return NextResponse.json(
+      { error: "Failed to save team" },
+      { status: 500 }
+    );
+  }
 }
