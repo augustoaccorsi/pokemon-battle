@@ -20,39 +20,36 @@ A Gen I–III Pokémon battle simulator built with Next.js, featuring a Pokédex
 ## Prerequisites
 
 - Node.js 20+
-- Docker (for PostgreSQL)
+- [Colima](https://github.com/abiosoft/colima) + Docker CLI (no Docker Desktop required)
+
+```bash
+brew install colima docker
+```
 
 ## First-time Setup
 
-**1. Start the database:**
-```bash
-DOCKER_API_VERSION=1.43 docker run -d \
-  --name pokemon-db \
-  -e POSTGRES_USER=pokemon \
-  -e POSTGRES_PASSWORD=pokemon \
-  -e POSTGRES_DB=pokemon_battle \
-  -p 5432:5432 \
-  postgres:16-alpine
-```
-
-**2. Install, migrate, and import data (~5 min):**
 ```bash
 npm install
-npm run setup
+npm run start:fresh
 ```
 
-**3. Start the dev server:**
+That's it. `start:fresh` will:
+1. Start Colima (the Docker daemon) if it's not running
+2. Create and start the PostgreSQL container
+3. Run database migrations
+4. Import all Pokémon data from PokéAPI (~10–15 min, rate-limited)
+5. Start the dev server at [http://localhost:3000](http://localhost:3000)
+
+## Subsequent Runs
+
+On subsequent runs the import is skipped — just start the app:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-## Subsequent Runs
-
-If the Docker container already exists but is stopped:
+If the database container is stopped (e.g. after a reboot):
 ```bash
-DOCKER_API_VERSION=1.43 docker start pokemon-db
+npm run docker:up
 npm run dev
 ```
 
@@ -60,6 +57,8 @@ npm run dev
 
 | Command | Description |
 |---|---|
+| `npm run start:fresh` | Full first-time setup: Docker + DB + import + dev server |
+| `npm run docker:up` | Start Colima + Postgres container |
 | `npm run dev` | Start dev server at :3000 |
 | `npm run setup` | Migrate DB + import all Pokémon data |
 | `npm run setup:dev` | Same but skips migration history (`db push`) |
