@@ -198,6 +198,7 @@ model TeamPokemon {
   teamId    String
   pokemonId Int
   slot      Int
+  level     Int    @default(50)
 
   team    Team    @relation(fields: [teamId],    references: [id])
   pokemon Pokemon @relation(fields: [pokemonId], references: [id])

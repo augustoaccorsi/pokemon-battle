@@ -4,7 +4,7 @@ import type { SaveTeamRequest } from "@/types/pokemon";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = (await req.json()) as SaveTeamRequest;
-  const { name, pokemonIds } = body;
+  const { name, pokemonIds, levels } = body;
 
   if (!Array.isArray(pokemonIds) || pokemonIds.length !== 6) {
     return NextResponse.json(
@@ -20,11 +20,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
+  const resolvedLevels = pokemonIds.map((_, i) => {
+    const lvl = levels?.[i] ?? 50;
+    return Math.min(100, Math.max(1, lvl));
+  });
+
   const team = await prisma.team.create({
     data: {
       name: name ?? null,
       pokemon: {
-        create: pokemonIds.map((pokemonId, slot) => ({ pokemonId, slot })),
+        create: pokemonIds.map((pokemonId, slot) => ({
+          pokemonId,
+          slot,
+          level: resolvedLevels[slot],
+        })),
       },
     },
   });

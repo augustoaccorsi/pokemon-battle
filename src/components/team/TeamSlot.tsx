@@ -9,6 +9,8 @@ interface TeamSlotProps {
   slot: number;
   onClick: () => void;
   isSelected: boolean;
+  level?: number;
+  onLevelChange?: (level: number) => void;
 }
 
 export default function TeamSlot({
@@ -16,6 +18,8 @@ export default function TeamSlot({
   slot,
   onClick,
   isSelected,
+  level = 50,
+  onLevelChange,
 }: TeamSlotProps) {
   return (
     <motion.button
@@ -24,7 +28,7 @@ export default function TeamSlot({
       whileTap={{ scale: 0.93 }}
       aria-label={
         pokemon
-          ? `Slot ${slot + 1}: ${pokemon.name}. Click to select.`
+          ? `Slot ${slot + 1}: ${pokemon.name} Lv.${level}. Click to select.`
           : `Slot ${slot + 1}: empty. Click to add a Pokémon.`
       }
       style={{
@@ -41,10 +45,15 @@ export default function TeamSlot({
         fontFamily: "inherit",
         transition: "border-color 0.1s, box-shadow 0.1s",
       }}
-      className="w-full aspect-square flex flex-col items-center justify-center p-2 rounded-sm select-none overflow-hidden"
+      className="w-full h-36 flex flex-col items-center justify-center p-2 rounded-sm select-none overflow-hidden"
     >
       {pokemon ? (
-        <FilledSlot pokemon={pokemon} />
+        <FilledSlot
+          pokemon={pokemon}
+          level={level}
+          isSelected={isSelected}
+          onLevelChange={onLevelChange}
+        />
       ) : (
         <EmptySlot slot={slot} />
       )}
@@ -77,7 +86,17 @@ function EmptySlot({ slot }: { slot: number }) {
   );
 }
 
-function FilledSlot({ pokemon }: { pokemon: PokemonListItem }) {
+function FilledSlot({
+  pokemon,
+  level,
+  isSelected,
+  onLevelChange,
+}: {
+  pokemon: PokemonListItem;
+  level: number;
+  isSelected: boolean;
+  onLevelChange?: (level: number) => void;
+}) {
   return (
     <div className="flex flex-col items-center gap-1 w-full">
       {pokemon.spriteFront ? (
@@ -116,6 +135,44 @@ function FilledSlot({ pokemon }: { pokemon: PokemonListItem }) {
         {pokemon.types.map((t) => (
           <TypeBadge key={t} type={t} size="sm" />
         ))}
+      </div>
+
+      {/* Level badge — same height whether editable or static */}
+      <div style={{ height: 20, display: "flex", alignItems: "center", marginTop: 2 }}>
+        {isSelected && onLevelChange ? (
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={level}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              const v = Math.min(100, Math.max(1, Number(e.target.value)));
+              onLevelChange(v);
+            }}
+            style={{
+              width: 44,
+              height: 18,
+              fontFamily: "inherit",
+              fontSize: "0.45rem",
+              padding: "0 4px",
+              border: "2px solid var(--pokemon-yellow)",
+              background: "var(--panel-light)",
+              color: "var(--text-primary)",
+              textAlign: "center",
+            }}
+          />
+        ) : (
+          <span
+            style={{
+              fontSize: "0.4rem",
+              color: "var(--text-secondary)",
+              lineHeight: "18px",
+            }}
+          >
+            Lv.{level}
+          </span>
+        )}
       </div>
     </div>
   );

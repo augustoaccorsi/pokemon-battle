@@ -17,4 +17,5 @@ export interface RandomTeamRequest {
 export interface SaveTeamRequest {
   name?: string;
   pokemonIds: number[];
+  levels?: number[];
 }

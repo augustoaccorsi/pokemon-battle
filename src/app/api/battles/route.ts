@@ -100,7 +100,6 @@ async function buildBattlePokemon(
 
 interface CreateBattleBody {
   teamId: string
-  teamLevel?: number
   gymLeaderId: number
   difficulty: 'normal' | 'hard' | 'challenge'
 }
@@ -113,8 +112,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { teamId, teamLevel, gymLeaderId, difficulty } = body
-  const playerLevel = Math.min(100, Math.max(1, teamLevel ?? 50))
+  const { teamId, gymLeaderId, difficulty } = body
 
   if (!teamId || !gymLeaderId || !difficulty) {
     return NextResponse.json(
@@ -153,12 +151,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Team not found or empty' }, { status: 404 })
   }
 
-  const DEFAULT_LEVEL = playerLevel
+  const DEFAULT_LEVEL = 50
 
-  // Build player side
+  // Build player side — use per-Pokémon level stored in the team slot
   const playerPokemon: BattlePokemon[] = await Promise.all(
-    team.pokemon.map((slot: { pokemonId: number; pokemon: { name: string } }, i: number) =>
-      buildBattlePokemon(i, 'player', slot.pokemonId, slot.pokemon.name, DEFAULT_LEVEL, []),
+    team.pokemon.map((slot: { pokemonId: number; pokemon: { name: string }; level: number }, i: number) =>
+      buildBattlePokemon(i, 'player', slot.pokemonId, slot.pokemon.name, slot.level ?? DEFAULT_LEVEL, []),
     ),
   )
 
